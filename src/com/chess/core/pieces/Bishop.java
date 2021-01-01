@@ -1,20 +1,16 @@
 package com.chess.core.pieces;
 
 import com.chess.core.board.Board;
-import com.chess.core.game.Alliance;
-import com.chess.core.move.Move;
-import static com.chess.core.move.Move.createMove;
-
+import com.chess.core.game.Side;
+import com.chess.core.game.move.Move;
+import static com.chess.core.game.move.Move.createMove;
 import java.util.HashSet;
-
 import static com.chess.core.service.Converter.*;
 
 public class Bishop extends Piece {
-    public Bishop(Board board, int piecePosition, Alliance alliance) {
-        super(board, piecePosition, alliance);
+    public Bishop(Board board, int piecePosition, Side side) {
+        super(board, piecePosition, side);
     }
-
-    private final int[] DIRECTIONS = {-1, 1};
 
     @Override
     public void calculateLegalMoves() {
@@ -30,24 +26,20 @@ public class Bishop extends Piece {
             for (int offset = 1; offset < 8; offset++) {
                 int destinationX = x + offset * direction;
                 int destinationY = y + offset * direction;
-
                 Move move;
-
                 if (isValidPosition(destinationX, destinationY)) {
                     int destination = getPosition(destinationX, destinationY);
-
                     // Tile is empty
                     if (!this.getBoard().getTile(destination).isTileOccupied()) {
-                        move = createMove(getBoard(), this, destination, null);
-                        getBoard().changeAllianceOnTile(destination, getPieceAlliance());
+                        move = createMove(this, destination, null);
                         legalMovesCache.add(move);
                     }
                     // Tile is occupied
                     else {
                         Piece pieceOnTile = getBoard().getPiece(destination);
-                        if (!pieceOnTile.getPieceAlliance().equals(this.getPieceAlliance())) {
-                            move = createMove(getBoard(), this, destination, pieceOnTile);
-                            getBoard().changeAllianceOnTile(destination, getPieceAlliance());
+                        if (!pieceOnTile.getPieceSide().equals(this.getPieceSide())) {
+                            if (pieceOnTile.isKing()) setCheck();
+                            move = createMove(this, destination, pieceOnTile);
                             legalMovesCache.add(move);
                         } break;
                     }
@@ -58,24 +50,20 @@ public class Bishop extends Piece {
             for (int offset = 1; offset < 8; offset++) {
                 int destinationX = x + offset * direction;
                 int destinationY = y - offset * direction;
-
                 Move move;
-
                 if (isValidPosition(destinationX, destinationY)) {
                     int destination = getPosition(destinationX, destinationY);
-
                     // Tile is empty
                     if (!this.getBoard().getTile(destination).isTileOccupied()) {
-                        move = createMove(getBoard(), this, destination, null);
-                        getBoard().changeAllianceOnTile(destination, getPieceAlliance());
+                        move = createMove(this, destination, null);
                         legalMovesCache.add(move);
                     }
                     // Tile is occupied
                     else {
                         Piece pieceOnTile = getBoard().getPiece(destination);
-                        if (!pieceOnTile.getPieceAlliance().equals(this.getPieceAlliance())) {
-                            move = createMove(getBoard(), this, destination, pieceOnTile);
-                            getBoard().changeAllianceOnTile(destination, getPieceAlliance());
+                        if (!pieceOnTile.getPieceSide().equals(this.getPieceSide())) {
+                            if (pieceOnTile.isKing()) setCheck();
+                            move = createMove(this, destination, pieceOnTile);
                             legalMovesCache.add(move);
                         } break;
                     }

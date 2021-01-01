@@ -1,24 +1,23 @@
 package com.chess.core.pieces;
 
 import com.chess.core.board.Board;
-import com.chess.core.game.Alliance;
-import com.chess.core.move.Move;
+import com.chess.core.game.Side;
+import com.chess.core.game.move.Move;
 
 import java.util.HashSet;
 
 import static com.chess.core.service.Converter.getColumnNumber;
 import static com.chess.core.service.Converter.getRowNumber;
 import static com.chess.core.service.Converter.isValidPosition;
-import static com.chess.core.move.Move.createMove;
+import static com.chess.core.game.move.Move.createMove;
 
 public class Pawn extends Piece {
-    public Pawn(Board board, int piecePosition, Alliance alliance) {
-        super(board, piecePosition, alliance);
+    public Pawn(Board board, int piecePosition, Side side) {
+        super(board, piecePosition, side);
     }
 
     @Override
     public void calculateLegalMoves() {
-
         HashSet<Move> legalMovesCache = new HashSet<>(6);
 
         int classicOffset = 8 * getDirection();
@@ -28,7 +27,7 @@ public class Pawn extends Piece {
         int destination = getPiecePosition() + classicOffset;
         if (isValidPosition(destination)) {
             if (!this.getBoard().getTile(destination).isTileOccupied()) {
-                legalMovesCache.add(createMove(getBoard(), this, destination, null));
+                legalMovesCache.add(createMove(this, destination, null));
             }
         }
 
@@ -39,7 +38,7 @@ public class Pawn extends Piece {
                 if (!getBoard().getTile(getPiecePosition() + classicOffset).isTileOccupied()
                         && isValidPosition(destination)) {
                     if (!getBoard().getTile(destination).isTileOccupied()) {
-                        legalMovesCache.add(createMove(getBoard(), this, destination, null));
+                        legalMovesCache.add(createMove( this, destination, null));
                     }
                 }
             }
@@ -61,14 +60,11 @@ public class Pawn extends Piece {
         int destination = getPiecePosition() + attackOffsetLeft;
 
         if (isValidPosition(destination) && isValidColumn(destination)) {
-
-            // Changing Alliance On Tile
-            getBoard().changeAllianceOnTile(destination, getPieceAlliance());
-
             if (getBoard().getTile(destination).isTileOccupied()) {
                 Piece pieceOnTile = getBoard().getPiece(destination);
-                if (!pieceOnTile.getPieceAlliance().equals(this.getPieceAlliance())) {
-                    attackMoveCache.add(createMove(getBoard(), this, destination, pieceOnTile));
+                if (!pieceOnTile.getPieceSide().equals(this.getPieceSide())) {
+                    if (pieceOnTile.isKing()) setCheck();
+                    attackMoveCache.add(createMove(this, destination, pieceOnTile));
                 }
             }
         }
@@ -76,14 +72,11 @@ public class Pawn extends Piece {
         // Right-Attack move
         destination = getPiecePosition() + attackOffsetRight;
         if (isValidPosition(destination) && isValidColumn(destination)) {
-
-            // Changing Alliance On Tile
-            getBoard().changeAllianceOnTile(destination, getPieceAlliance());
-
             if (getBoard().getTile(destination).isTileOccupied()) {
                 Piece pieceOnTile = getBoard().getPiece(destination);
-                if (!pieceOnTile.getPieceAlliance().equals(this.getPieceAlliance())) {
-                    attackMoveCache.add(createMove(getBoard(), this, destination, pieceOnTile));
+                if (!pieceOnTile.getPieceSide().equals(this.getPieceSide())) {
+                    if (pieceOnTile.isKing()) setCheck();
+                    attackMoveCache.add(createMove( this, destination, pieceOnTile));
                 }
             }
         }
@@ -91,12 +84,12 @@ public class Pawn extends Piece {
     }
 
     private int getDirection() {
-        if (getPieceAlliance().equals(Alliance.WHITE)) return -1;
+        if (getPieceSide().equals(Side.WHITE)) return -1;
         else return 1;
     }
 
     private boolean isAbleToJump() {
-        if (getPieceAlliance().equals(Alliance.WHITE)) return getRowNumber(getPiecePosition()) == 6;
+        if (getPieceSide().equals(Side.WHITE)) return getRowNumber(getPiecePosition()) == 6;
         return getRowNumber(getPiecePosition()) == 1;
     }
 

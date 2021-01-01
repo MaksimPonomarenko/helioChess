@@ -1,70 +1,67 @@
 package com.chess.core.game.player;
 
 import com.chess.core.board.Board;
-import com.chess.core.game.Alliance;
+import com.chess.core.game.Side;
 import com.chess.core.game.Game;
-import com.chess.core.move.Move;
+import com.chess.core.game.move.Move;
 import com.chess.core.pieces.King;
 import com.chess.core.pieces.Piece;
-
-import static com.chess.core.game.Game.isMoveLegal;
-
-import java.util.*;
 
 public abstract class Player {
 
     public final Game game;
-    private final Alliance alliance;
+    private final Side side;
     private final King playerKing;
 
-    public Player(Game game, Alliance alliance) {
+    public boolean isCheck;
+
+    public Player(Game game, Side side) {
         this.game = game;
-        this.alliance = alliance;
+        this.side = side;
         this.playerKing = game.getBoard().getKing(getPlayerAlliance());
+        this.isCheck = false;
     }
 
-    public void makeMove() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            int currentPosition = scanner.nextInt();
+    public void makeMove(Piece pieceToMove, int destination) {
 
-            Piece pieceToMove = this.getBoard().getPiece(currentPosition);
-            if (pieceToMove.getPieceAlliance().equals(this.game.allianceToMove)) {
-                int[] moves = this.getBoard().getPiece(currentPosition).getLegalMovesPositions();
-                System.out.println(Arrays.toString(moves));
-                this.game.showLegalMoves(currentPosition);
-                int destinationPosition = scanner.nextInt();
+        if (this.isCheck()) {
+            // 1) TODO: занулить threats in Game.class
+            // 2) TODO: алгоритм просчета ходов для короля
+            // 3) TODO: алгоритм поиска фигуры для защиты короля
+            // 4) TODO: алгоритм поиска фигуры, ликвидирущей угрозы
 
-                Piece attackedPiece = getBoard().getPiece(destinationPosition);
-                Move move = Move.createMove(getBoard(), pieceToMove, destinationPosition, attackedPiece);
-                if (isMoveLegal(move)) {
-                    this.game.movePiece(move);
-                    nextMove(move);
-                    break;
-                }
-
+            System.out.println(this.game.checkBy + " do something with that");
+        } else {
+            Move move = Move.createMove(pieceToMove, destination, getBoard().getPiece(destination));
+            // Player making move
+            if (isMoveLegal(move)) {
+                this.game.movePiece(move);
+                nextMove();
             } else {
-                System.out.println("не трожь чужое");
+            /*
+                Something went wrong -> Player should try new move.
+                handleClick back to Game.class
+            */
+                this.game.GUI.removeLegalMoves();
+                this.game.isFirstClick = true;
             }
         }
     }
 
-    // Checks if the player is in check
-    public boolean isCheck() {
-
-        int kingPosition = getKing().getPiecePosition();
-        Alliance allianceOnKingTile = getBoard().getAllianceOnTile(kingPosition);
-
-        if (allianceOnKingTile == null) return false;
-        return allianceOnKingTile.equals(getOpponent().getPlayerAlliance());
+    public static boolean isMoveLegal(Move move) {
+        return move.getMovedPiece().getLegalMoves().contains(move);
     }
 
-    public abstract void nextMove(Move lastMove);
+    public boolean isCheck() {
+        return this.isCheck;
+    }
+
+    public abstract void nextMove();
 
     public abstract Player getOpponent();
 
-    public Alliance getPlayerAlliance() {
-        return this.alliance;
+    public Side getPlayerAlliance() {
+        return this.side;
     }
 
     public King getKing() {
